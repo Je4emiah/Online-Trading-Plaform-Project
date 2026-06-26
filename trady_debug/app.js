@@ -1,89 +1,240 @@
+/**
+ * ==========================================================================
+ * TRADY — INTERACTION DATA STREAM LOGIC ARCHITECTURE
+ * ==========================================================================
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("dealModal");
-    const closeModal = document.querySelector(".close-modal");
-    const messageBox = document.getElementById("messageBox");
-    const toast = document.getElementById("toast");
+    // Structural Node Targets
+    const modal          = document.getElementById("dealModal");
+    const closeModal     = document.querySelector(".close-modal");
+    const messageBox     = document.getElementById("messageBox");
+    const toast          = document.getElementById("toast");
+    const searchInput    = document.getElementById("searchInput");
+    const clearSearch    = document.getElementById("clearSearch");
+    const searchMeta     = document.getElementById("searchMeta");
+    const wtsGrid        = document.getElementById("wtsGrid");
+    const wtbGrid        = document.getElementById("wtbGrid");
+    const wtsEmpty       = document.getElementById("wtsEmpty");
+    const wtbEmpty       = document.getElementById("wtbEmpty");
+    const noResults      = document.getElementById("noResults");
+    const noResultsQuery = document.getElementById("noResultsQuery");
+    const wtsBadge       = document.getElementById("wtsBadge");
+    const wtbBadge       = document.getElementById("wtbBadge");
+    const heroWts        = document.getElementById("wtsCount");
+    const heroWtb        = document.getElementById("wtbCount");
 
-    // Global contact variables to maintain reference during live edits
-    let activePhone = "";
-    let activeTgUser = "";
-    let activeEmail = "";
+    let activePhone   = "";
+    let activeTgUser  = "";
+    let activeEmail   = "";
+    let searchOpen    = false;
 
-    closeModal.onclick = () => modal.style.display = "none";
-    window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
+    // --- 1. MODAL ENGINE PIPELINE CONTROL OVERLAYS ---
+    function openModalForCard(card) {
+        const itemTitle = card.querySelector(".item-title")?.textContent || "Item";
+        const price     = card.querySelector(".price-tag")?.textContent || "N/A";
+        const typeLabel = card.querySelector(".deal-type")?.textContent || "DEAL";
+        const username  = card.dataset.username || "User";
 
-    // Click handler for all Deal Trigger buttons
-    document.querySelectorAll(".trigger-deal-modal").forEach(button => {
-        button.addEventListener("click", (e) => {
-            const card = e.target.closest(".deal-card");
-            
-            // Extract item variables from the card components
-            const item = card.getAttribute("data-item");
-            const price = card.getAttribute("data-price");
-            
-            // Define the baseline text constant with integrated variables
-            const defaultMessage = `Hi! I want to buy your "${item}" for ${price} on Trady.`;
-            
-            // Put the default message directly inside our editable layout text box
-            messageBox.value = defaultMessage;
+        activePhone   = card.dataset.phone    || "";
+        activeTgUser  = card.dataset.telegram || "";
+        activeEmail   = card.dataset.email    || "";
 
-            // Save contact details to global state for live updates
-            activePhone = card.getAttribute("data-phone");
-            activeTgUser = card.getAttribute("data-telegram");
-            activeEmail = card.getAttribute("data-email");
-            
-            const lineId = card.getAttribute("data-line");
-            const dcTag = card.getAttribute("data-discord");
-            const wcId = card.getAttribute("data-wechat");
-            const fbUser = card.getAttribute("data-fb");
+        document.getElementById("modalTitle").textContent = `Link With ${username}`;
+        messageBox.textContent = `Hello, I saw your listing for "${itemTitle}" priced at ${price} on Trady and would like to arrange the trade transaction.`;
 
-            // Build Tier 1 hyperlinks immediately on first load
-            updateLiveLinks(defaultMessage);
+        // Configure platform links dynamically
+        setupChannelLink("link-whatsapp", activePhone, `https://wa.me/${activePhone.replace(/\+/g, '')}?text=${encodeURIComponent(messageBox.textContent)}`);
+        setupChannelLink("link-telegram", activeTgUser, `https://t.me/${activeTgUser.replace(/@/g, '')}`);
+        setupChannelLink("link-line", card.dataset.line, `https://line.me/ti/p/~${card.dataset.line}`);
+        setupChannelLink("link-sms", activePhone, `sms:${activePhone};?&body=${encodeURIComponent(messageBox.textContent)}`);
+        setupChannelLink("link-email", activeEmail, `mailto:${activeEmail}?subject=${encodeURIComponent("Trady Marketplace Inquiry")}&body=${encodeURIComponent(messageBox.textContent)}`);
+        setupChannelLink("link-messenger", card.dataset.fb, `https://m.me/${card.dataset.fb}`);
 
-            // Configure non-pre-filled elements (Tier 2 actions)
-            setupTier2Copy("btn-discord", dcTag, "https://discord.com", "📋 Discord Tag copied! Opening Discord...");
-            setupTier2Copy("btn-wechat", wcId, "https://weixin.qq.com/", "📋 WeChat ID copied! Opening WeChat...");
-            document.getElementById("link-messenger").href = `https://m.me/${fbUser}`;
+        setupCopyAction("btn-discord", card.dataset.discord, "Discord handle copied");
+        setupCopyAction("btn-wechat", card.dataset.wechat, "WeChat identity signature copied");
 
-            modal.style.display = "flex";
-        });
-    });
-
-    // LISTEN FOR LIVE EDITS: Fires whenever user modifies the text area box
-    messageBox.addEventListener("input", (e) => {
-        const customMessage = e.target.value;
-        updateLiveLinks(customMessage);
-    });
-
-    // Function to calculate link parameters using real-time message state
-    function updateLiveLinks(currentText) {
-        const encodedMsg = encodeURIComponent(currentText);
-
-        document.getElementById("link-whatsapp").href = `https://wa.me/${activePhone}?text=${encodedMsg}`;
-        document.getElementById("link-telegram").href = `https://t.me/${activeTgUser}?text=${encodedMsg}`;
-        document.getElementById("link-line").href = `https://line.me/R/msg/text/?${encodedMsg}`;
-        document.getElementById("link-sms").href = `sms:${activePhone}?&body=${encodedMsg}`;
-        document.getElementById("link-email").href = `mailto:${activeEmail}?subject=Trady Purchase Offer&body=${encodedMsg}`;
+        modal.classList.add("active");
     }
 
-    // Helper to bind clipboard events to Tier 2 elements
-    function setupTier2Copy(elementId, textToCopy, forwardUrl, successMsg) {
-        const btn = document.getElementById(elementId);
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
+    function setupChannelLink(id, value, url) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (value && value.trim() !== "") {
+            el.setAttribute("href", url);
+            el.classList.remove("hidden-element");
+        } else {
+            el.classList.add("hidden-element");
+        }
+    }
 
-        newBtn.addEventListener("click", () => {
-            if (!textToCopy) return alert("User hasn't provided this ID.");
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast(successMsg);
-                setTimeout(() => { window.open(forwardUrl, '_blank'); }, 1000);
+    function setupCopyAction(id, value, successMsg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (value && value.trim() !== "") {
+            el.classList.remove("hidden-element");
+            // Wipe clean old listeners to clear event bubble queues
+            const freshEl = el.cloneNode(true);
+            el.parentNode.replaceChild(freshEl, el);
+            freshEl.addEventListener("click", () => {
+                navigator.clipboard.writeText(value)
+                    .then(() => triggerToast(successMsg))
+                    .catch(() => triggerToast("Copy routine failed."));
             });
+        } else {
+            el.classList.add("hidden-element");
+        }
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener("click", () => modal.classList.remove("active"));
+    }
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.remove("active");
+    });
+
+    // --- 2. LIVE SEAMLESS TOAST ENGINE ---
+    function triggerToast(message) {
+        toast.textContent = message;
+        toast.classList.add("active");
+        setTimeout(() => toast.classList.remove("active"), 3000);
+    }
+
+    // --- 3. DYNAMIC SEARCH & RADIAL LOGIC ENGINE ---
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.toLowerCase().trim();
+            clearSearch.style.display = query.length > 0 ? "block" : "none";
+
+            const cards = document.querySelectorAll(".deal-card");
+            let visibleWTS = 0, visibleWTB = 0;
+
+            cards.forEach(card => {
+                const title   = card.querySelector(".item-title")?.textContent.toLowerCase() || "";
+                const details = card.querySelector(".item-details")?.textContent.toLowerCase() || "";
+                const user    = card.dataset.username?.toLowerCase() || "";
+                const type    = card.dataset.type || "";
+
+                const matches = title.includes(query) || details.includes(query) || user.includes(query);
+
+                if (matches) {
+                    card.classList.remove("hidden-element");
+                    if (type === "wts") visibleWTS++;
+                    else if (type === "wtb") visibleWTB++;
+                } else {
+                    card.classList.add("hidden-element");
+                }
+            });
+
+            // Handle column visibility toggles
+            toggleEmptyState(wtsEmpty, wtsGrid, visibleWTS);
+            toggleEmptyState(wtbEmpty, wtbGrid, visibleWTB);
+
+            // Handle global no-results panel visibility
+            const absoluteTotal = visibleWTS + visibleWTB;
+            if (absoluteTotal === 0 && query.length > 0) {
+                noResults.classList.remove("hidden-element");
+                noResultsQuery.textContent = `"${searchInput.value}"`;
+            } else {
+                noResults.classList.add("hidden-element");
+            }
+
+            // Sync structural count values cleanly
+            updateBadgeCounters(visibleWTS, visibleWTB, query.length > 0);
+        });
+
+        clearSearch.addEventListener("click", () => {
+            searchInput.value = "";
+            clearSearch.style.display = "none";
+            searchInput.dispatchEvent(new Event("input"));
+            searchInput.focus();
         });
     }
 
-    function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add("show");
-        setTimeout(() => { toast.classList.remove("show"); }, 2500);
+    function toggleEmptyState(emptyEl, gridEl, count) {
+        if (count === 0) {
+            emptyEl.classList.remove("hidden-element");
+            gridEl.style.display = "none";
+        } else {
+            emptyEl.classList.add("hidden-element");
+            gridEl.style.display = "flex";
+        }
     }
-});
+
+    function updateBadgeCounters(wts, wtb, isSearching) {
+        wtsBadge.textContent = `${wts} item${wts === 1 ? '' : 's'}`;
+        wtbBadge.textContent = `${wtb} item${wtb === 1 ? '' : 's'}`;
+        if (isSearching) {
+            searchMeta.style.display = "block";
+            searchMeta.textContent = `⚡ Search filter active: ${wts + wtb} metrics correlated.`;
+        } else {
+            searchMeta.style.display = "none";
+        }
+    }
+
+    // --- 4. DATA LOADER RUNTIME LOOP ---
+    function initializeMarketplaceDataset() {
+        const mockedDataset = [
+            { type: "wts", item: "Premium Damascus Steel Sword", price: "$1,450", username: "ViperBlade", details: "Forged with 1095 and 15N20 high carbon core steel layers. Perfect edge telemetry alignment. Collectors condition.", phone: "+15550199", telegram: "@viperblade", email: "viper@trady.io", line: "viper.blade", discord: "Viper#9991", wechat: "wx_viper", fb: "viper.listings" },
+            { type: "wts", item: "Cyberpunk Oni Hannya Mask", price: "$280", username: "NeonShogun", details: "Custom printed resin structure complete with integrated glowing cyan micro-LED lines. Interior cushioned padding matrix.", phone: "+81900111", telegram: "@neonshogun", email: "shogun@neon.net", line: "", discord: "Shogun#1102", wechat: "", fb: "neon.shogun" },
+            { type: "wtb", item: "Vintage Leica M6 Camera Base", price: "Offer ~$3,200", username: "SilverHalide", details: "Seeking functional internal mechanical shutter states. Minor cosmetic leather peeling accepted. Drop direct telemetry channels.", phone: "", telegram: "@silverhalide", email: "halide@capture.org", line: "halide.leica", discord: "", wechat: "leica_silver", fb: "" },
+            { type: "wtb", item: "Audeze LCD-4 Planar Headphones", price: "Budget $2,100", username: "AudiophileX", details: "Must include original wooden structural box housing array and XLR balance wiring harness system. 200 ohm variant targets.", phone: "+14159988", telegram: "", email: "sound@audiophile.me", line: "", discord: "Audio#4401", wechat: "", fb: "audiophile.exchange" }
+        ];
+
+        let totalWTS = 0, totalWTB = 0;
+
+        mockedDataset.forEach(data => {
+            const card = document.createElement("div");
+            card.className = "deal-card";
+            card.dataset.type = data.type;
+            card.dataset.username = data.username;
+            card.dataset.phone = data.phone;
+            card.dataset.telegram = data.telegram;
+            card.dataset.line = data.line;
+            card.dataset.email = data.email;
+            card.dataset.discord = data.discord;
+            card.dataset.wechat = data.wechat;
+            card.dataset.fb = data.fb;
+
+            const typeLabel = data.type === "wts" ? "WTS • Sell" : "WTB • Buy";
+            const typeClass = data.type === "wts" ? "type-wts" : "type-wtb";
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="deal-type ${typeClass}">${typeLabel}</span>
+                    <span class="user-status"><i class="fa-solid fa-circle"></i> ${data.username}</span>
+                </div>
+                <div class="card-body">
+                    <h3 class="item-title">${data.item}</h3>
+                    <p class="item-details">${data.details}</p>
+                    <div class="price-tag">${data.price}</div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-timestamp"><i class="fa-regular fa-clock"></i> Active</span>
+                    <div class="card-actions">
+                        <button class="btn btn-chat"><i class="fa-solid fa-comments"></i> Details</button>
+                        <button class="btn btn-deal trigger-deal-modal">⚡ Connect</button>
+                    </div>
+                </div>`;
+
+            card.querySelector(".trigger-deal-modal").addEventListener("click", () => openModalForCard(card));
+            card.querySelector(".btn-chat").addEventListener("click", () => triggerToast(`Displaying audit logs for item entry: "${data.item}"`));
+
+            if (data.type === "wts") {
+                wtsGrid.appendChild(card);
+                totalWTS++;
+            } else {
+                wtbGrid.appendChild(card);
+                totalWTB++;
+            }
+        });
+
+        // Initialize display counters on initial load
+        heroWts.textContent = totalWTS;
+        heroWtb.textContent = totalWTB;
+        updateBadgeCounters(totalWTS, totalWTB, false);
+    }
+
+    // Fire data loading step
+    initializeMarketplaceDataset();
+})
