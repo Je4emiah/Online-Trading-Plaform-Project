@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trady — Premium Analytics Trading Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <h1 class="logo"><i class="fa-solid fa-right-left"></i> Trady</h1>
+            <div class="nav-search-wrapper">
+                <div class="nav-search-input-wrap" id=\"navSearchWrap\">
+                    <i class="fa-solid fa-magnifying-glass nav-search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search item variables, ids, or listings..." autocomplete="off">
+                    <button class="nav-clear-btn" id="clearSearch" aria-label="Clear context search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="nav-search-meta" id="searchMeta"></div>
+    </header>
+
+    <section class="hero-section">
+        <h2 class="hero-title">Marketplace Activity Desk</h2>
+        <p class="hero-subtitle">Monitor programmatic trading vectors, real-time demand, and active seller listings cleanly synchronized across local nodes.</p>
+        
+        <div class="hero-stats-row">
+            <div class="stat-item">
+                <span id="wtsCount" class="stat-val wts-color">0</span>
+                <span class="stat-lbl">Active Supply (WTS)</span>
+            </div>
+            <div class="stat-item">
+                <span id="wtbCount" class="stat-val wtb-color">0</span>
+                <span class="stat-lbl">Active Demand (WTB)</span>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-marketplace-grid">
+        
+        <section class="market-column">
+            <header class="column-header">
+                <h3 class="column-title">Supply Offers</h3>
+                <span id="wtsBadge" class="column-count-badge">0 items</span>
+            </header>
+            
+            <div id="wtsEmpty" class="empty-state-card hidden-element">No sell configurations active.</div>
+            <div id="wtsGrid" class="deals-vertical-stack">
+                </div>
+        </section>
+
+        <section class="market-column">
+            <header class="column-header">
+                <h3 class="column-title">Demand Requests</h3>
+                <span id="wtbBadge" class="column-count-badge">0 items</span>
+            </header>
+            
+            <div id="wtbEmpty" class="empty-state-card hidden-element">No demand lines matching query signals.</div>
+            <div id="wtbGrid" class="deals-vertical-stack">
+                </div>
+        </section>
+    </main>
+
+    <div id="noResults" class="empty-state-card hidden-element" style="max-width: 600px; margin: 3rem auto;">
+        <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 10px;"></i>
+        <p>No trading data matrices correlate with criteria search query signature: <strong id="noResultsQuery">""</strong></p>
+    </div>
+
+    <div id="dealModal" class="modal-overlay">
+        <div class="modal-wrapper">
+            <header class="modal-header-block">
+                <h3 class="modal-title-text" id="modalTitle">Initialize Transaction Link</h3>
+                <button class="close-modal" aria-label="Close interactive display overlay"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            
+            <div class="modal-body-content">
+                <div class="preview-box-container">
+                    <p id="messageBox" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); font-weight: 500;"></p>
+                </div>
+
+                <div class="tier-section">
+                    <h3>⚡ Direct Integration Channels</h3>
+                    <div class="tier-grid">
+                        <a id="link-whatsapp" target="_blank" class="channel-btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                        <a id="link-telegram" target="_blank" class="channel-btn"><i class="fa-brands fa-telegram"></i> Telegram</a>
+                        <a id="link-line" target="_blank" class="channel-btn"><i class="fa-brands fa-line"></i> LINE Chat</a>
+                        <a id="link-sms" class="channel-btn"><i class="fa-solid fa-comment-sms"></i> Mobile SMS</a>
+                        <a id="link-email" class="channel-btn"><i class="fa-solid fa-envelope"></i> Send Email</a>
+                    </div>
+                </div>
+
+                <div class="tier-section">
+                    <h3>📋 Identity Context Routing</h3>
+                    <div class="tier-grid">
+                        <button id="btn-discord" class="channel-btn"><i class="fa-brands fa-discord"></i> Discord</button>
+                        <button id="btn-wechat" class="channel-btn"><i class="fa-brands fa-weixin"></i> WeChat</button>
+                        <a id="link-messenger" target="_blank" class="channel-btn"><i class="fa-brands fa-facebook-messenger"></i> Messenger</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-notification">Notification Event Dispatched</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
