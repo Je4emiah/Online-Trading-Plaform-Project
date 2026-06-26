@@ -1,4 +1,4 @@
-# 🔄 Trady [Prototype Phase]
+# Trady [Prototype Phase]
 
 _Trady_ is an agile, cross-platform peer-to-peer online trading hub designed around automated communication efficiency. 
 
@@ -6,7 +6,7 @@ Traditional online marketplaces suffer from chaotic, unstructured communication 
 
 ---
 
-## 🛠️ Current Implemented Features
+## Current Implemented Features
 
 *   **Flask & SQLite Dynamic Feed:** A functional Python backend that loops through an embedded SQLite relational database (`trady.db`) and dynamically injects real-time values into the frontend view, eliminating hardcoded HTML attributes.
 *   **Structured Listing Cards:** Clear, color-coded separation of **WTS (Want to Sell)** and **WTB (Want to Buy)** listings displaying custom descriptions, pricing, and live user availability status elements.
